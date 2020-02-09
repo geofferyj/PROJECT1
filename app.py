@@ -48,7 +48,7 @@ def login_required(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if 'email' not in session:
+        if 'uid' not in session:
             return redirect(url_for('login', next=request.url))
         return func(*args, **kwargs)
     return wrapper
@@ -73,9 +73,9 @@ def login():
         email = form["email"]
         password = form["password"]
         next_url = form["next"]
-        user = db.execute("SELECT email FROM users WHERE email = :email", {"email": email}).fetchone()
+        user = db.execute("SELECT uid FROM users WHERE email = :email", {"email": email}).fetchone()
         if user:
-            session["email"] = user.email
+            session["uid"] = user.uid
             if next_url:
                 flash("Login successful")
                 return redirect(next_url)
@@ -89,7 +89,7 @@ def login():
 
 @app.route("/logout/")
 def logout():
-    session.pop("email", None)
+    session.pop("uid", None)
 
     return redirect(url_for("login"))
 
@@ -114,11 +114,23 @@ def signup():
     return render_template('signup.html')
 
 
-@app.route("/book/<isbn>/")
+@app.route("/book/<isbn>/", methods = ["GET", "POST"])
 @login_required
 def book_details(isbn):
 
-    reviews = db.execute("SELECT name, review, rating FROM users, reviews WHERE users.uid = reviews.uid AND reviews.isbn = :isbn ORDER BY reviews.review_date", {"isbn":isbn}).fetchone()
+    if request.method == "POST":
+        review = request.form.get("review")
+        rating = request.form.get("rating")
+        uid = session["uid"]
+        
+        try:
+            db.execute("INSERT INTO reviews (uid, isbn, review, rating) VALUES(:uid, :isbn, :review, :rating)", {"uid": uid, "isbn": isbn, "review": review, "rating": rating})
+            db.commit()
+        except exc.IntegrityError:
+            flash('You have already revied this book')
+            return redirect(url_for('book_details', isbn=isbn))
+
+    reviews = db.execute("SELECT name, review, rating FROM users, reviews WHERE users.uid = reviews.uid AND reviews.isbn = :isbn ORDER BY reviews.review_date", {"isbn":isbn})
     details = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn":isbn}).fetchone()
 
     return render_template("book_details.html", details=details, reviews=reviews)
