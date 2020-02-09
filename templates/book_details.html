@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<div class="card" style="color: black;">
+    <div class="card-body">
+        <h2>Book Title</h2>
+        <p>{{details.title}}</p>
+        <hr>
+        <h2>Author</h2>
+        <p>{{details.author}}</p>
+        <hr>
+        <h2>Year Published</h2>
+        <p>{{details.year}}</p>
+    </div>
+</div>
+
+{% if reviews %}
+
+{% for review in reviews %}
+<div class="card">
+    <div class="card-subtitle">
+        <p>{{review.name}} RATING: {{review.rating}}</p>
+
+    </div>
+
+    <div class="card-body">
+        {{review.review}}
+   </div>
+</div>
+{% endfor %}
+
+{% endif %}
+{% endblock main %}

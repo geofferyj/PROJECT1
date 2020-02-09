@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block main %}
+<p> {% with messages =  get_flashed_messages()%}
+    {% if messages %}
+    {% for message in messages %}
+    {{message}}
+
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</p>
+<h1 class="cover-heading">SEARCH FOR BOOKS</h1>
+<p class="lead">Enter Author Name, Book Title or ISBN ID Below</p>
+<div class="lead">
+
+    <!-- Search form -->
+    <form method="POST" class="form-inline md-form form-sm active-pink-2 mt-2">
+        <input class="form-control form-control-sm mr-3 w-75" name="search" type="text" placeholder="Search"
+            aria-label="Search">
+        <i class="fas fa-search" aria-hidden="true"></i>
+
+        <button type="submit" class="btn btn-lg btn-secondary">Search</button>
+
+    </form>
+
+</div>
+
+<div class="search-result">
+    {% for book in data %}
+
+    <div class="book">
+        <a href="{{url_for('book_details', isbn = book.isbn)}}"> {{book.title}} written by {{book.author}} </a>
+    </div>
+
+    {% endfor %}
+
+   
+</div>
+
+{% endblock main %}
