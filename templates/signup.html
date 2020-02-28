@@ -2,6 +2,17 @@
 
 
 {% block main %}
+
+{% with messages = get_flashed_messages()%}
+{% if messages %}
+
+{% for message in  messages%}
+    <p>{{ message }}</p>
+{% endfor %}
+
+{% endif %}
+{% endwith %}
+
 <form method="POST" class="form-signin">
     <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
     <input type="text" class="form-control" name="name" placeholder="Your Name" required autofocus>
@@ -11,4 +22,6 @@
     <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
     <p class="mt-5 mb-3 text-muted">&copy; 2017-2019</p>
 </form>
+
+
 {% endblock main %}

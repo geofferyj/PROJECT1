@@ -1,4 +1,4 @@
-import os
+import os, requests
 from functools import wraps
 
 from flask import Flask, session, redirect, render_template, url_for, request, flash
@@ -109,7 +109,7 @@ def signup():
             db.commit()
             return redirect(url_for('login'))
         except exc.IntegrityError:
-            flash('Username Already exists, please try another')
+            flash('Username Already exists')
             return redirect(url_for('signup'))
     return render_template('signup.html')
 
@@ -133,7 +133,12 @@ def book_details(isbn):
     reviews = db.execute("SELECT name, review, rating FROM users, reviews WHERE users.uid = reviews.uid AND reviews.isbn = :isbn ORDER BY reviews.review_date", {"isbn":isbn})
     details = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn":isbn}).fetchone()
 
-    return render_template("book_details.html", details=details, reviews=reviews)
+    res = requests.get("https://www.goodreads.com/book/review_counts.json", params={"key": "e9hh8mpJf995M7SzMfst5A", "isbns": isbn}).json()
+
+    for i in res['books']:
+        gr_data = i
+
+    return render_template("book_details.html", details=details, reviews=reviews, gr_data=gr_data)
 
 
 @app.shell_context_processor
