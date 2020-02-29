@@ -1,7 +1,7 @@
 import os, requests
 from functools import wraps
 
-from flask import Flask, session, redirect, render_template, url_for, request, flash
+from flask import Flask, session, redirect, render_template, url_for, request, flash, jsonify, make_response
 from flask_session import Session
 from sqlalchemy import create_engine, exc
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -60,8 +60,14 @@ def index():
     
     if request.method == "POST":
         search = request.form.get("search")
-        data = db.execute("SELECT * FROM books WHERE title ILIKE :search OR author ILIKE :search OR isbn ILIKE :search", {"search": '%' + search + '%'})
-        return render_template('index.html', data=data)
+        data = db.execute("SELECT * FROM books WHERE title ILIKE :search OR author ILIKE :search OR isbn ILIKE :search", {"search": '%' + search + '%'}).fetchall()
+        
+        if data:
+            return render_template('index.html', data=data)
+        else:
+            flash("Sorry No match was found for your search")
+            return render_template('index.html', data=data)
+
 
     return render_template('index.html')
 
@@ -139,6 +145,31 @@ def book_details(isbn):
         gr_data = i
 
     return render_template("book_details.html", details=details, reviews=reviews, gr_data=gr_data)
+
+
+
+@app.route("/api/<isbn>/", methods=['GET'])
+def api(isbn):
+    if request.method == 'GET':
+        book = db.execute('SELECT * FROM books WHERE isbn = :isbn', {'isbn': isbn}).fetchone()
+        rating = db.execute("SELECT ROUND( AVG(rating), 2) FROM reviews WHERE isbn = :isbn", {'isbn':isbn}).fetchone()
+        review = db.execute("SELECT COUNT(review) FROM reviews WHERE isbn = :isbn", {'isbn':isbn}).fetchone()
+
+        for i in rating:
+            avg_rating = float(i)
+
+        for i in review:
+            review_count = int(i)
+
+        return make_response(jsonify({
+        "title": book.title,
+        "author": book.author,
+        "year": book.year,
+        "isbn": book.isbn,
+        "review_count": review_count,
+        "average_score": avg_rating,
+        }))
+
 
 
 @app.shell_context_processor
