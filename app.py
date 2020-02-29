@@ -1,7 +1,7 @@
 import os, requests
 from functools import wraps
 
-from flask import Flask, session, redirect, render_template, url_for, request, flash, jsonify, make_response
+from flask import Flask, session, redirect, render_template, url_for, request, flash, jsonify, make_response, abort
 from flask_session import Session
 from sqlalchemy import create_engine, exc
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -152,23 +152,34 @@ def book_details(isbn):
 def api(isbn):
     if request.method == 'GET':
         book = db.execute('SELECT * FROM books WHERE isbn = :isbn', {'isbn': isbn}).fetchone()
-        rating = db.execute("SELECT ROUND( AVG(rating), 2) FROM reviews WHERE isbn = :isbn", {'isbn':isbn}).fetchone()
-        review = db.execute("SELECT COUNT(review) FROM reviews WHERE isbn = :isbn", {'isbn':isbn}).fetchone()
 
-        for i in rating:
-            avg_rating = float(i)
+        if book:
+            rating = db.execute("SELECT ROUND( AVG(rating), 2) FROM reviews WHERE isbn = :isbn", {'isbn':isbn}).fetchone()
+            review = db.execute("SELECT COUNT(review) FROM reviews WHERE isbn = :isbn", {'isbn':isbn}).fetchone()
 
-        for i in review:
-            review_count = int(i)
+            for i in rating:
+                if i:
+                    avg_rating = float(i)
+                else:
+                    avg_rating = 0 
 
-        return make_response(jsonify({
-        "title": book.title,
-        "author": book.author,
-        "year": book.year,
-        "isbn": book.isbn,
-        "review_count": review_count,
-        "average_score": avg_rating,
-        }))
+            
+            for i in review:
+                if i:
+                    review_count = int(i)
+                else:
+                    review_count = 0 
+
+            return make_response(jsonify({
+                                        "title": book.title,
+                                        "author": book.author,
+                                        "year": book.year,
+                                        "isbn": book.isbn,
+                                        "review_count": review_count,
+                                        "average_score": avg_rating,
+                                        }))
+        else:
+            return abort(404)
 
 
 
