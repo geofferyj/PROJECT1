@@ -1,0 +1,6 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/geojoe/public_html/book-search
+    - /bin/cp .htaccess $DEPLOYPATH
+    - /bin/cp -r * $DEPLOYPATH
