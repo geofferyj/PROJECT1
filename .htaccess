@@ -2,5 +2,5 @@ RewriteEngine On
 RewriteBase /
 RewriteRule ^(media/.*)$ - [L]
 RewriteRule ^(admin_media/.*)$ - [L]
-RewriteRule ^(book-search\.wsgi/.*)$ - [L]
-RewriteRule ^(.*)$ book-search/book-search.wsgi/$1 [QSA,PT,L]
+RewriteRule ^(book_search\.wsgi/.*)$ - [L]
+RewriteRule ^(.*)$ book_search/book_search.wsgi/$1 [QSA,PT,L]
